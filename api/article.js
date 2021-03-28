@@ -12,12 +12,12 @@ export const getFeedArticles = params => {
 }
 
 // 添加点赞
-export const addFavorite = slug => {
+export const favorite = slug => {
   return request.post(`/api/articles/${slug}/favorite`)
 }
 
 // 删除点赞
-export const deleteFavorite = slug => {
+export const unfavorite = slug => {
   return request.delete(`/api/articles/${slug}/favorite`)
 }
 
@@ -35,3 +35,20 @@ export const getComments = slug => {
 export const addComments = ({ slug, comment }) => {
   return request.post(`/api/articles/${slug}/comments`, { comment })
 }
+
+// 创建文章
+export const createArticle = ({ article }) => {
+  return request.post(`/api/articles`, { article })
+}
+
+// 更新文章
+export const updateArticle = ({ slug, article }) => {
+  return request.put(`/api/articles/${slug}`, { article })
+}
+
+// 删除文章
+export const deleteArticle = slug => {
+  return request.delete(`/api/articles/${slug}`)
+}
+
+

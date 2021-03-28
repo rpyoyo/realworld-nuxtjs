@@ -49,17 +49,22 @@ export default {
     }
   },
   props: {},
-  async asyncData ({ params }) {
-    const { data: {
-      article
-    } } = await getArticle(params.slug)
+  async asyncData ({ params, redirect }) {
+    try {
+      const { data: {
+        article
+      } } = await getArticle(params.slug)
 
-    const md = new MarkdownIt()
-    article.html = md.render(article.body)
+      const md = new MarkdownIt()
+      article.html = md.render(article.body)
 
-    return {
-      article
+      return {
+        article
+      }
+    } catch (e) {
+      return redirect('/')
     }
+
   },
   data () {
     return {

@@ -9,13 +9,7 @@
             <nuxt-link to="/login" v-else>Have an account?</nuxt-link>
           </p>
 
-          <ul class="error-messages">
-            <template v-for="(messages, field) in errors">
-              <li v-for="(message, idx) in messages" :key="idx">
-                {{ field }} {{ message }}
-              </li>
-            </template>
-          </ul>
+          <error-messages :errors="errors" />
 
           <form @submit.prevent="onSubmit">
             <fieldset class="form-group" v-if="!login">
@@ -58,11 +52,13 @@
 
 <script>
 import { login, register } from '@/api/users'
+import ErrorMessages from '@/components/ErrorMessages'
+
 const Cookie = process.client ? require('js-cookie') : undefined
 
 export default {
-  name: '',
-  components: {},
+  name: 'Auth',
+  components: { ErrorMessages },
   props: {
     login: {
       type: Boolean,

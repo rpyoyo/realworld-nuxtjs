@@ -4,15 +4,37 @@
       <div class="container">
         <div class="row">
           <div class="col-xs-12 col-md-10 offset-md-1">
-            <img src="http://i.imgur.com/Qr71crq.jpg" class="user-img" />
-            <h4>Eric Simons</h4>
+            <img :src="profile.image" class="user-img" />
+            <h4>{{ profile.username }}</h4>
             <p>
-              Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda
-              looks like Peeta from the Hunger Games
+              {{ profile.bio }}
             </p>
-            <button class="btn btn-sm btn-outline-secondary action-btn">
+            <nuxt-link
+              class="btn btn-sm btn-outline-secondary action-btn"
+              :to="{
+                name: 'settings',
+              }"
+              v-if="user && user.username === profile.username"
+            >
+              <i class="ion-gear-a"></i> Edit Profile Settings
+            </nuxt-link>
+            <button
+              class="btn btn-sm btn-outline-secondary action-btn"
+              @click="unfollow"
+              :disabled="waiting"
+              v-else-if="profile.following"
+            >
               <i class="ion-plus-round"></i>
-              &nbsp; Follow Eric Simons
+              &nbsp; Unfollow {{ profile.username }}
+            </button>
+            <button
+              class="btn btn-sm btn-outline-secondary action-btn"
+              @click="follow"
+              :disabled="waiting"
+              v-else
+            >
+              <i class="ion-plus-round"></i>
+              &nbsp; Follow {{ profile.username }}
             </button>
           </div>
         </div>
@@ -25,55 +47,53 @@
           <div class="articles-toggle">
             <ul class="nav nav-pills outline-active">
               <li class="nav-item">
-                <a class="nav-link active" href="">My Articles</a>
+                <nuxt-link
+                  class="nav-link"
+                  :class="{
+                    active: tab === 'author',
+                  }"
+                  exact
+                  :to="{
+                    name: 'profile-username',
+                    params: {
+                      username,
+                    },
+                    query: {
+                      tab: 'author',
+                    },
+                  }"
+                  >My Articles</nuxt-link
+                >
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="">Favorited Articles</a>
+                <nuxt-link
+                  class="nav-link"
+                  :class="{
+                    active: tab === 'favorited',
+                  }"
+                  exact
+                  :to="{
+                    name: 'profile-username',
+                    params: {
+                      username,
+                    },
+                    query: {
+                      tab: 'favorited',
+                    },
+                  }"
+                  >Favorited Articles</nuxt-link
+                >
               </li>
             </ul>
           </div>
 
-          <div class="article-preview">
-            <div class="article-meta">
-              <a href=""><img src="http://i.imgur.com/Qr71crq.jpg" /></a>
-              <div class="info">
-                <a href="" class="author">Eric Simons</a>
-                <span class="date">January 20th</span>
-              </div>
-              <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                <i class="ion-heart"></i> 29
-              </button>
-            </div>
-            <a href="" class="preview-link">
-              <h1>How to build webapps that scale</h1>
-              <p>This is the description for the post.</p>
-              <span>Read more...</span>
-            </a>
-          </div>
-
-          <div class="article-preview">
-            <div class="article-meta">
-              <a href=""><img src="http://i.imgur.com/N4VcUeJ.jpg" /></a>
-              <div class="info">
-                <a href="" class="author">Albert Pai</a>
-                <span class="date">January 20th</span>
-              </div>
-              <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                <i class="ion-heart"></i> 32
-              </button>
-            </div>
-            <a href="" class="preview-link">
-              <h1>
-                The song you won't ever stop singing. No matter how hard you
-                try.
-              </h1>
-              <p>This is the description for the post.</p>
-              <span>Read more...</span>
-              <ul class="tag-list">
-                <li class="tag-default tag-pill tag-outline">Music</li>
-                <li class="tag-default tag-pill tag-outline">Song</li>
-              </ul>
-            </a>
+          <article-list-item
+            v-for="article in articles"
+            :key="article.slug"
+            :article="article"
+          />
+          <div class="article-preview" v-if="!articles.length">
+            No articles are here... yet.
           </div>
         </div>
       </div>
@@ -82,19 +102,65 @@
 </template>
 
 <script>
+import { getProfile, follow, unfollow } from '@/api/profile'
+import { getArticles } from '@/api/article'
+import { mapState } from 'vuex'
+import ArticleListItem from '@/components/ArticleListItem'
+
 export default {
   name: 'Profile',
   middleware: 'authenticated',
-  components: {},
-  props: {},
-  data () {
+  components: {
+    ArticleListItem
+  },
+  props: {
+  },
+  watchQuery: ['tab'],
+  async asyncData ({ params, query }) {
+    const { tab = 'author' } = query
+    const { username } = params
+    const articleParams = {
+      [tab]: username
+    }
+
+    const [profileData, articlesData] = await Promise.all([
+      getProfile(username),
+      getArticles(articleParams)
+    ])
+
+    const { profile } = profileData.data
+    const { articles } = articlesData.data
+
     return {
+      profile,
+      tab,
+      username,
+      articles
     }
   },
-  computed: {},
+  data () {
+    return {
+      waiting: false,
+    }
+  },
+  computed: {
+    ...mapState(['user'])
+  },
   created () { },
-  mounted () { },
-  methods: {}
+  methods: {
+    async follow () {
+      this.waiting = true
+      await follow(this.profile.username)
+      this.waiting = false
+      this.profile.following = true
+    },
+    async unfollow () {
+      this.waiting = true
+      await unfollow(this.profile.username)
+      this.waiting = false
+      this.profile.following = false
+    }
+  }
 }
 </script>
 <style lang='less' scoped>

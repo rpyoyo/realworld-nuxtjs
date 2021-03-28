@@ -64,43 +64,14 @@
             </ul>
           </div>
 
-          <div
-            class="article-preview"
+          <article-list-item
             v-for="article in articles"
             :key="article.slug"
-          >
-            <div class="article-meta">
-              <nuxt-link :to="`/profile/${article.author.username}`"
-                ><img :src="article.author.image"
-              /></nuxt-link>
-              <div class="info">
-                <nuxt-link
-                  :to="`/profile/${article.author.username}`"
-                  class="author"
-                  >{{ article.author.username }}</nuxt-link
-                >
-                <span class="date">{{
-                  article.createdAt | date("MMM DD, YYYY")
-                }}</span>
-              </div>
-              <button
-                class="btn btn-outline-primary btn-sm pull-xs-right"
-                :class="{
-                  active: article.favorited,
-                }"
-                :disabled="article.favoriteDisabled"
-                @click="onFavorite(article)"
-              >
-                <i class="ion-heart"></i> {{ article.favoritesCount }}
-              </button>
-            </div>
-            <nuxt-link :to="`/article/${article.slug}`" class="preview-link">
-              <h1>{{ article.title }}</h1>
-              <p>{{ article.description }}</p>
-              <span>Read more...</span>
-            </nuxt-link>
+            :article="article"
+          />
+          <div class="article-preview" v-if="!articles.length">
+            No articles are here... yet.
           </div>
-
           <nav>
             <ul class="pagination">
               <li
@@ -155,18 +126,21 @@
 </template>
 
 <script>
-import { getArticles, getFeedArticles, addFavorite, deleteFavorite } from '@/api/article'
+import { getArticles, getFeedArticles } from '@/api/article'
 import { getTags } from '@/api/tag'
 import { mapState } from 'vuex'
+import ArticleListItem from '@/components/ArticleListItem'
 
 export default {
   name: 'HomePage',
   watchQuery: ['page', 'tag', 'tab'],
-  components: {},
+  components: {
+    ArticleListItem
+  },
   props: {},
   async asyncData ({ query, store }) {
     const { page = 1, tag, tab = 'global_feed' } = query
-    const limit = 5
+    const limit = 10
     const offset = (page - 1) * limit
 
     const loadArticles = store.state.user && tab === 'your_feed' ? getFeedArticles : getArticles
@@ -209,19 +183,7 @@ export default {
   created () { },
   mounted () { },
   methods: {
-    async onFavorite (article) {
-      article.favoriteDisabled = true
-      if (article.favorited) {
-        await deleteFavorite(article.slug)
-        article.favorited = false
-        article.favoritesCount -= 1
-      } else {
-        await addFavorite(article.slug)
-        article.favorited = true
-        article.favoritesCount += 1
-      }
-      article.favoriteDisabled = false
-    }
+
   }
 }
 </script>
