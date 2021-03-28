@@ -109,7 +109,7 @@ import ArticleListItem from '@/components/ArticleListItem'
 
 export default {
   name: 'Profile',
-  middleware: 'authenticated',
+  // middleware: 'authenticated',
   components: {
     ArticleListItem
   },
@@ -149,12 +149,18 @@ export default {
   created () { },
   methods: {
     async follow () {
+      if (!this.user) {
+        return this.$router.push('/login')
+      }
       this.waiting = true
       await follow(this.profile.username)
       this.waiting = false
       this.profile.following = true
     },
     async unfollow () {
+      if (!this.user) {
+        return this.$router.push('/login')
+      }
       this.waiting = true
       await unfollow(this.profile.username)
       this.waiting = false

@@ -4,7 +4,7 @@
       <div class="row">
         <div class="col-md-10 offset-md-1 col-xs-12">
           <error-messages :errors="errors" />
-          <form @submit.prevent="onSubmit">
+          <form>
             <fieldset>
               <fieldset class="form-group">
                 <input
@@ -58,7 +58,8 @@
               </fieldset>
               <button
                 class="btn btn-lg pull-xs-right btn-primary"
-                type="submit"
+                type="button"
+                @click="onSubmit"
               >
                 Publish Article
               </button>
